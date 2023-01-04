@@ -22,9 +22,7 @@ class RoutePages{
     ),
     GetPage(
       name: RouteConstants.account,
-      page: () => AccountScreen(
-        args: AccountArgument(),
-      ),
+      page: () => const AccountScreen(),
       binding: AccountBinding(),
     ),
   ];

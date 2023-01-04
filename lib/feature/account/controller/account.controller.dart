@@ -1,28 +1,26 @@
-import 'dart:convert';
-
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Response;
-import 'package:getex_cuy/constants/canoncial_path.dart';
+import 'package:getex_cuy/base/base.controller.dart';
 import 'package:getex_cuy/feature/account/argument/account.argument.dart';
 import 'package:getex_cuy/feature/account/model/account.model.dart';
-import 'package:getex_cuy/main.dart';
+import 'package:getex_cuy/repository/account.repository.dart';
 
-class AccountController extends GetxController {
-  var isLoading = true.obs;
-  var isError = false.obs;
-  var errMsg = "".obs;
-  var accountData = <UserModel>[].obs;
+class AccountController extends BaseController {
+  final AccountRepository accountRepository = Get.find(tag: (AccountRepository).toString());
   AccountArgument? accountArgument;
 
-  Dio dio = Dio();
+  final RxList<UserModel> _accountListController =
+  RxList.empty();
+
+  List<UserModel> get accountList =>
+      _accountListController.toList();
 
   @override
   void onInit() {
     // TODO: implement onInit
     accountArgument = Get.arguments;
     debugPrint("Account Argument => ${accountArgument?.id}");
-    getUser();
+    getAccountUser();
     super.onInit();
   }
 
@@ -36,22 +34,17 @@ class AccountController extends GetxController {
     super.onClose();
   }
 
-  Future<List<UserModel>> getUser() async {
-    isLoading(true);
-    try {
-      final result = await myApiClient.getData(CanonicalPath.ACCOUNT);
-      var dataJson = jsonDecode(result.toString());
-      List<dynamic> data = (dataJson["data"] ?? []) as List<dynamic>;
-      isLoading(false);
-      isError(false);
-      accountData.value = data.map((e) => UserModel.fromMap(e)).toList();
-      return accountData;
-    } catch (e) {
-      isLoading(false);
-      isError(true);
-      errMsg(e.toString());
-      throw Exception(e);
-    }
+  void getAccountUser(){
+    var accountDataService = accountRepository.getAccountUser();
+
+    callDataService(
+      accountDataService,
+      onSuccess: _handleDataAccountList
+    );
+  }
+
+  void _handleDataAccountList(List<UserModel> listUserModel){
+    _accountListController(listUserModel);
   }
 
   showToast(fName, lName, context) {
